@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Typing Practice</title>
+</head>
+<body>
+<div id="typing-practice-app">
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #typing-practice-app {
+      color: #1f2937;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      background: #f7fafc;
+    }
+
+    #typing-practice-app * {
+      box-sizing: border-box;
+    }
+
+    .app-shell {
+      width: min(1320px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 16px 0 28px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid #d8e2ef;
+    }
+
+    h1 {
+      margin: 0;
+      color: #111827;
+      font-size: clamp(1.45rem, 2.2vw, 2.1rem);
+      font-weight: 780;
+      letter-spacing: 0;
+    }
+
+    .subtle {
+      margin: 6px 0 0;
+      color: #5b687a;
+      font-size: 0.95rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #3b4658;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    input,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid #b8c6d8;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #0ea5a4;
+      box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.18);
+    }
+
+    input {
+      width: 112px;
+      min-height: 42px;
+      padding: 0 12px;
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+      padding: 12px 14px;
+      line-height: 1.55;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
+
+    .primary-button {
+      color: #ffffff;
+      background: #0f766e;
+    }
+
+    .secondary-button {
+      color: #253248;
+      background: #ffffff;
+      border-color: #b8c6d8;
+    }
+
+    .danger-button {
+      color: #7f1d1d;
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      padding-top: 18px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+      box-shadow: 0 10px 26px rgba(30, 41, 59, 0.08);
+    }
+
+    .practice-panel,
+    .diagram-panel,
+    .history-panel {
+      padding: 16px;
+    }
+
+    .diagram-panel {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin-top: 12px;
+      padding: 8px;
+    }
+
+    .diagram-frame {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+      background: #eef5ff;
+      height: clamp(180px, 24vh, 250px);
+    }
+
+    .diagram-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 24%;
+    }
+
+    .practice-top {
+      display: grid;
+      grid-template-columns: minmax(340px, 1fr) minmax(520px, 0.92fr);
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .practice-setup {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 0;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .metric {
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: #64748b;
+      font-size: 0.76rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      color: #111827;
+      font-size: clamp(1.2rem, 2.3vw, 1.8rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .target-box {
+      min-height: 184px;
+      margin-bottom: 12px;
+      padding: 18px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fdfefe;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: clamp(1.08rem, 2vw, 1.35rem);
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
+
+    .target-box .char {
+      border-radius: 4px;
+      padding: 1px 0;
+    }
+
+    .target-box .correct {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .target-box .wrong {
+      color: #991b1b;
+      background: #fee2e2;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+    }
+
+    .target-box .current {
+      color: #0f172a;
+      background: #fde68a;
+      box-shadow: inset 0 -2px 0 #d97706;
+    }
+
+    .typing-input {
+      min-height: 126px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 1.04rem;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-left: auto;
+      color: #475569;
+      font-size: 0.92rem;
+      font-weight: 650;
+    }
+
+    .error {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #7f1d1d;
+      background: #fff1f2;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+    }
+
+    .history-panel {
+      grid-column: 1 / -1;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      color: #111827;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .history-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5edf6;
+      text-align: left;
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #475569;
+      background: #f8fafc;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty-state {
+      padding: 18px 12px;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 920px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .practice-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app-shell {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .diagram-panel {
+        margin-top: 10px;
+        padding: 6px;
+      }
+
+      .diagram-frame {
+        height: clamp(145px, 22vh, 190px);
+      }
+
+      .practice-panel,
+      .history-panel {
+        padding: 12px;
+      }
+
+      .status {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+  </style>
+
+  <main class="app-shell">
+    <section class="topbar" aria-label="Practice controls">
+      <div>
+        <h1>Daily Typing Practice</h1>
+        <p class="subtle">Time-boxed touch-typing with the finger map visible.</p>
+      </div>
+      <div class="controls">
+        <label>
+          Minutes
+          <input id="durationInput" type="number" inputmode="decimal" value="2" aria-label="Practice duration in minutes">
+        </label>
+        <button id="startBtn" class="primary-button" type="button">Start</button>
+      </div>
+    </section>
+
+    <aside class="diagram-panel panel" aria-label="Finger placement diagram">
+      <div class="diagram-frame">
+        <img src="assets/finger-placement-diagram.png" alt="Keyboard diagram showing which finger owns each key">
+      </div>
+    </aside>
+
+    <section class="layout">
+      <section class="practice-panel panel" aria-label="Typing practice">
+        <div class="practice-top">
+          <div class="practice-setup">
+            <label>
+              Practice sentence
+              <textarea id="sentenceInput">Stay on the home row, move one finger at a time, and return each finger to its key.</textarea>
+            </label>
+          </div>
+
+          <div class="metrics" aria-label="Session stats">
+            <div class="metric"><span>Time</span><strong id="timeMetric">2:00</strong></div>
+            <div class="metric"><span>WPM</span><strong id="wpmMetric">0</strong></div>
+            <div class="metric"><span>Accuracy</span><strong id="accuracyMetric">100%</strong></div>
+            <div class="metric"><span>Errors</span><strong id="errorsMetric">0</strong></div>
+          </div>
+        </div>
+
+        <div id="targetBox" class="target-box" aria-live="polite"></div>
+        <textarea id="typingInput" class="typing-input" placeholder="Press Start, then type here until time runs out." disabled></textarea>
+
+        <div class="row-actions">
+          <button id="endBtn" class="danger-button" type="button" disabled>End Session</button>
+          <button id="clearTodayBtn" class="secondary-button" type="button">Clear History</button>
+          <span id="statusText" class="status" aria-live="polite"></span>
+        </div>
+        <div id="errorBox" class="error" role="alert"></div>
+      </section>
+
+      <section class="history-panel panel" aria-label="Day to day performance">
+        <div class="history-header">
+          <h2>Performance History</h2>
+          <p class="subtle" id="historyCount">No sessions yet</p>
+        </div>
+        <div class="history-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Sessions</th>
+                <th>Best WPM</th>
+                <th>Avg WPM</th>
+                <th>Avg Accuracy</th>
+                <th>Total Minutes</th>
+                <th>Total Errors</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+          <div id="emptyHistory" class="empty-state">Complete a session to start tracking day-to-day progress.</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const storageKey = "daily-typing-practice-v1";
+      const visibleAhead = 420;
+      const app = document.getElementById("typing-practice-app");
+      const durationInput = app.querySelector("#durationInput");
+      const sentenceInput = app.querySelector("#sentenceInput");
+      const startBtn = app.querySelector("#startBtn");
+      const endBtn = app.querySelector("#endBtn");
+      const clearTodayBtn = app.querySelector("#clearTodayBtn");
+      const targetBox = app.querySelector("#targetBox");
+      const typingInput = app.querySelector("#typingInput");
+      const timeMetric = app.querySelector("#timeMetric");
+      const wpmMetric = app.querySelector("#wpmMetric");
+      const accuracyMetric = app.querySelector("#accuracyMetric");
+      const errorsMetric = app.querySelector("#errorsMetric");
+      const statusText = app.querySelector("#statusText");
+      const errorBox = app.querySelector("#errorBox");
+      const historyBody = app.querySelector("#historyBody");
+      const historyCount = app.querySelector("#historyCount");
+      const emptyHistory = app.querySelector("#emptyHistory");
+
+      let records = [];
+      let session = null;
+      let ticker = null;
+      let targetText = "";
+      const isMac = navigator.platform.toLowerCase().includes("mac");
+      const shortcutLabel = isMac ? "Command+Enter" : "Control+Enter";
+      startBtn.title = `Start session (${shortcutLabel})`;
+      endBtn.title = `End session (${shortcutLabel})`;
+
+      function showError(message, error) {
+        const detail = error && (error.stack || error.message || String(error));
+        errorBox.textContent = detail ? `${message}\n${detail}` : message;
+        errorBox.style.display = "block";
+      }
+
+      function clearError() {
+        errorBox.textContent = "";
+        errorBox.style.display = "none";
+      }
+
+      function todayKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatTime(seconds) {
+        const safeSeconds = Math.max(0, Math.ceil(seconds));
+        const minutes = Math.floor(safeSeconds / 60);
+        const remainder = String(safeSeconds % 60).padStart(2, "0");
+        return `${minutes}:${remainder}`;
+      }
+
+      function readRecords() {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          throw new Error(`${storageKey} must contain a JSON array.`);
+        }
+        return parsed;
+      }
+
+      function writeRecords(nextRecords) {
+        localStorage.setItem(storageKey, JSON.stringify(nextRecords));
+      }
+
+      function loadHistory() {
+        clearError();
+        try {
+          records = readRecords();
+        } catch (error) {
+          records = [];
+          showError("Could not load typing history from localStorage.", error);
+        }
+        renderHistory();
+      }
+
+      function persistHistory() {
+        try {
+          writeRecords(records);
+          return true;
+        } catch (error) {
+          showError("Could not save typing history to localStorage.", error);
+          return false;
+        }
+      }
+
+      function makeTarget(sentence) {
+        const cleanSentence = sentence.replace(/\s+/g, " ").trim();
+        if (!cleanSentence) {
+          throw new Error("Practice sentence cannot be empty.");
+        }
+        return Array(80).fill(cleanSentence).join(" ");
+      }
+
+      function escapeChar(character) {
+        if (character === " ") return "&nbsp;";
+        if (character === "\n") return "<br>";
+        return character
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function measure(inputValue, elapsedSeconds) {
+        let correctChars = 0;
+        let errors = 0;
+        for (let index = 0; index < inputValue.length; index += 1) {
+          if (inputValue[index] === targetText[index]) {
+            correctChars += 1;
+          } else {
+            errors += 1;
+          }
+        }
+
+        const typedChars = inputValue.length;
+        const minutesElapsed = Math.max(elapsedSeconds / 60, 1 / 60);
+        const grossWpm = typedChars / 5 / minutesElapsed;
+        const netWpm = correctChars / 5 / minutesElapsed;
+        const accuracy = typedChars === 0 ? 1 : correctChars / typedChars;
+
+        return {
+          typedChars,
+          correctChars,
+          errors,
+          grossWpm,
+          netWpm,
+          accuracy
+        };
+      }
+
+      function renderTarget() {
+        const typed = typingInput.value;
+        const cursor = typed.length;
+        const start = Math.max(0, cursor - 80);
+        const end = Math.min(targetText.length, cursor + visibleAhead);
+        let html = "";
+
+        for (let index = start; index < end; index += 1) {
+          const expected = targetText[index] || "";
+          const typedChar = typed[index];
+          let className = "char";
+          if (index < typed.length) {
+            className += typedChar === expected ? " correct" : " wrong";
+          } else if (index === cursor) {
+            className += " current";
+          }
+          html += `<span class="${className}">${escapeChar(expected)}</span>`;
+        }
+        targetBox.innerHTML = html;
+      }
+
+      function updateMetrics() {
+        const now = Date.now();
+        const elapsedSeconds = session ? Math.min((now - session.startedAt) / 1000, session.durationSeconds) : 0;
+        const configuredMinutes = Number(durationInput.value);
+        const remainingSeconds = session
+          ? session.durationSeconds - elapsedSeconds
+          : Number.isFinite(configuredMinutes) && configuredMinutes > 0
+            ? configuredMinutes * 60
+            : 0;
+        const stats = measure(typingInput.value, elapsedSeconds);
+
+        timeMetric.textContent = formatTime(remainingSeconds);
+        wpmMetric.textContent = Math.round(stats.netWpm);
+        accuracyMetric.textContent = `${Math.round(stats.accuracy * 100)}%`;
+        errorsMetric.textContent = stats.errors;
+
+        if (session && remainingSeconds <= 0) {
+          finishSession("complete");
+        }
+      }
+
+      function showFinalMetrics(stats, remainingSeconds) {
+        timeMetric.textContent = formatTime(remainingSeconds);
+        wpmMetric.textContent = Math.round(stats.netWpm);
+        accuracyMetric.textContent = `${Math.round(stats.accuracy * 100)}%`;
+        errorsMetric.textContent = stats.errors;
+      }
+
+      function setRunning(isRunning) {
+        durationInput.disabled = isRunning;
+        sentenceInput.disabled = isRunning;
+        startBtn.disabled = isRunning;
+        endBtn.disabled = !isRunning;
+        typingInput.disabled = !isRunning;
+      }
+
+      function startSession() {
+        clearError();
+        const durationMinutes = Number(durationInput.value);
+        if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+          showError("Duration must be a number greater than 0 minutes.");
+          return;
+        }
+
+        try {
+          targetText = makeTarget(sentenceInput.value);
+        } catch (error) {
+          showError("Could not start practice.", error);
+          return;
+        }
+
+        session = {
+          startedAt: Date.now(),
+          durationSeconds: durationMinutes * 60,
+          durationMinutes,
+          sentence: sentenceInput.value.replace(/\s+/g, " ").trim()
+        };
+        typingInput.value = "";
+        setRunning(true);
+        statusText.textContent = "Session running";
+        renderTarget();
+        updateMetrics();
+        typingInput.focus();
+        ticker = window.setInterval(updateMetrics, 250);
+      }
+
+      function finishSession(reason) {
+        if (!session) return;
+
+        window.clearInterval(ticker);
+        ticker = null;
+
+        const elapsedSeconds = Math.min((Date.now() - session.startedAt) / 1000, session.durationSeconds);
+        const stats = measure(typingInput.value, elapsedSeconds);
+        const finishedRecord = {
+          date: todayKey(),
+          timestamp: new Date().toISOString(),
+          reason,
+          durationSeconds: Math.round(elapsedSeconds),
+          targetDurationSeconds: Math.round(session.durationSeconds),
+          sentence: session.sentence,
+          typedChars: stats.typedChars,
+          correctChars: stats.correctChars,
+          errors: stats.errors,
+          grossWpm: Number(stats.grossWpm.toFixed(2)),
+          netWpm: Number(stats.netWpm.toFixed(2)),
+          accuracy: Number((stats.accuracy * 100).toFixed(2))
+        };
+
+        records.push(finishedRecord);
+        const saved = persistHistory();
+        session = null;
+        setRunning(false);
+        showFinalMetrics(stats, Math.max(0, finishedRecord.targetDurationSeconds - finishedRecord.durationSeconds));
+        renderHistory();
+        if (saved) {
+          statusText.textContent = reason === "complete" ? "Session saved" : "Ended early and saved";
+        } else {
+          statusText.textContent = "Session ended, but history was not saved";
+        }
+      }
+
+      function groupByDay(rows) {
+        const byDate = new Map();
+        rows.forEach((row) => {
+          if (!byDate.has(row.date)) byDate.set(row.date, []);
+          byDate.get(row.date).push(row);
+        });
+
+        return Array.from(byDate.entries())
+          .sort((a, b) => b[0].localeCompare(a[0]))
+          .map(([date, dayRows]) => {
+            const sessions = dayRows.length;
+            const totalMinutes = dayRows.reduce((sum, row) => sum + row.durationSeconds / 60, 0);
+            const totalErrors = dayRows.reduce((sum, row) => sum + row.errors, 0);
+            const bestWpm = Math.max(...dayRows.map((row) => row.netWpm));
+            const avgWpm = dayRows.reduce((sum, row) => sum + row.netWpm, 0) / sessions;
+            const avgAccuracy = dayRows.reduce((sum, row) => sum + row.accuracy, 0) / sessions;
+            return {
+              date,
+              sessions,
+              totalMinutes,
+              totalErrors,
+              bestWpm,
+              avgWpm,
+              avgAccuracy
+            };
+          });
+      }
+
+      function renderHistory() {
+        const days = groupByDay(records);
+        historyBody.innerHTML = "";
+        emptyHistory.style.display = days.length ? "none" : "block";
+        historyCount.textContent = records.length === 1 ? "1 session saved" : `${records.length} sessions saved`;
+
+        days.forEach((day) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${day.date}</td>
+            <td>${day.sessions}</td>
+            <td>${day.bestWpm.toFixed(1)}</td>
+            <td>${day.avgWpm.toFixed(1)}</td>
+            <td>${day.avgAccuracy.toFixed(1)}%</td>
+            <td>${day.totalMinutes.toFixed(1)}</td>
+            <td>${day.totalErrors}</td>
+          `;
+          historyBody.appendChild(row);
+        });
+      }
+
+      function clearHistory() {
+        clearError();
+        try {
+          writeRecords([]);
+          records = [];
+          renderHistory();
+          statusText.textContent = "History cleared";
+        } catch (error) {
+          showError("Could not clear typing history from localStorage.", error);
+          statusText.textContent = "History was not cleared";
+        }
+      }
+
+      startBtn.addEventListener("click", startSession);
+      endBtn.addEventListener("click", () => finishSession("ended"));
+      clearTodayBtn.addEventListener("click", clearHistory);
+      document.addEventListener("keydown", (event) => {
+        const usesPrimaryModifier = isMac ? event.metaKey : event.ctrlKey;
+        if (event.key !== "Enter" || !usesPrimaryModifier || event.altKey || event.shiftKey) {
+          return;
+        }
+        event.preventDefault();
+        if (session) {
+          finishSession("ended");
+        } else {
+          startSession();
+        }
+      });
+      typingInput.addEventListener("input", () => {
+        if (!session) return;
+        if (typingInput.value.length > targetText.length - visibleAhead - 40) {
+          targetText += ` ${makeTarget(session.sentence)}`;
+        }
+        renderTarget();
+        updateMetrics();
+      });
+
+      durationInput.addEventListener("input", () => {
+        if (session) return;
+        const durationMinutes = Number(durationInput.value);
+        timeMetric.textContent = Number.isFinite(durationMinutes) && durationMinutes > 0 ? formatTime(durationMinutes * 60) : "--";
+      });
+
+      try {
+        targetText = makeTarget(sentenceInput.value);
+        renderTarget();
+        loadHistory();
+      } catch (error) {
+        showError("Could not initialize typing practice.", error);
+      }
+    })();
+  </script>
+</div>
+</body>
+</html>
