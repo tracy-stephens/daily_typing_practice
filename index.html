@@ -160,26 +160,12 @@
       position: sticky;
       top: 0;
       z-index: 5;
-      margin-top: 12px;
-      padding: 8px;
+      margin-top: 10px;
+      padding: 10px 12px;
     }
 
     .diagram-frame {
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      border: 1px solid #d8e2ef;
-      border-radius: 8px;
-      background: #eef5ff;
-      height: clamp(180px, 24vh, 250px);
-    }
-
-    .diagram-frame img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 24%;
+      overflow: visible;
     }
 
     .practice-top {
@@ -188,6 +174,130 @@
       gap: 14px;
       align-items: end;
       margin-bottom: 14px;
+    }
+
+    .keyboard-board {
+      --key-w: clamp(30px, 3.5vw, 50px);
+      --key-h: clamp(28px, 2.6vw, 36px);
+      --key-gap: clamp(4px, 0.55vw, 7px);
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      padding: 2px 0;
+    }
+
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      gap: var(--key-gap);
+    }
+
+    .key {
+      display: inline-grid;
+      place-items: center;
+      width: var(--key-w);
+      height: var(--key-h);
+      border: 2px solid currentColor;
+      border-radius: 7px;
+      color: #1f2937;
+      font-weight: 750;
+      font-size: clamp(0.78rem, 1.35vw, 1rem);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .key-wide {
+      width: calc(var(--key-w) * 1.8);
+      font-size: clamp(0.62rem, 1vw, 0.86rem);
+    }
+
+    .space-key {
+      width: calc(var(--key-w) * 4.4);
+      height: clamp(22px, 2.2vw, 30px);
+    }
+
+    .finger-legend {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: #475569;
+      font-size: 0.76rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+
+    .finger-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .finger-legend span::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .home-key {
+      box-shadow: inset 0 0 0 3px #111827;
+    }
+
+    .key.active-key {
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 0 3px #111827, 0 0 0 4px rgba(15, 118, 110, 0.22);
+    }
+
+    .left-pinky {
+      color: #f43f5e;
+      background: #ffd1dc;
+    }
+
+    .left-ring {
+      color: #f97316;
+      background: #fed7aa;
+    }
+
+    .left-middle {
+      color: #d97706;
+      background: #fde68a;
+    }
+
+    .left-index {
+      color: #10b981;
+      background: #a7f3d0;
+    }
+
+    .thumb {
+      color: #334155;
+      background: #cbd5e1;
+    }
+
+    .right-index {
+      color: #06b6d4;
+      background: #a5f3fc;
+    }
+
+    .right-middle {
+      color: #0ea5e9;
+      background: #bae6fd;
+    }
+
+    .right-ring {
+      color: #6366f1;
+      background: #c7d2fe;
+    }
+
+    .right-pinky {
+      color: #d946ef;
+      background: #f5d0fe;
+    }
+
+    .finger-legend span {
+      background: transparent;
     }
 
     .practice-setup {
@@ -389,11 +499,13 @@
 
       .diagram-panel {
         margin-top: 10px;
-        padding: 6px;
+        padding: 8px;
       }
 
-      .diagram-frame {
-        height: clamp(145px, 22vh, 190px);
+      .keyboard-board {
+        --key-w: clamp(22px, 6vw, 30px);
+        --key-h: clamp(24px, 6vw, 28px);
+        --key-gap: 3px;
       }
 
       .practice-panel,
@@ -425,7 +537,78 @@
 
     <aside class="diagram-panel panel" aria-label="Finger placement diagram">
       <div class="diagram-frame">
-        <img src="assets/finger-placement-diagram.png" alt="Keyboard diagram showing which finger owns each key">
+        <div class="keyboard-board" role="img" aria-label="Keyboard diagram showing finger zones and home-row keys">
+          <div class="keyboard-row">
+            <span class="key left-pinky" data-key="1">1</span>
+            <span class="key left-ring" data-key="2">2</span>
+            <span class="key left-middle" data-key="3">3</span>
+            <span class="key left-index" data-key="4">4</span>
+            <span class="key left-index" data-key="5">5</span>
+            <span class="key right-index" data-key="6">6</span>
+            <span class="key right-index" data-key="7">7</span>
+            <span class="key right-middle" data-key="8">8</span>
+            <span class="key right-ring" data-key="9">9</span>
+            <span class="key right-pinky" data-key="0">0</span>
+            <span class="key right-pinky" data-key="-">-</span>
+            <span class="key right-pinky" data-key="=">=</span>
+            <span class="key key-wide right-pinky">Back</span>
+          </div>
+          <div class="keyboard-row">
+            <span class="key left-pinky" data-key="q">Q</span>
+            <span class="key left-ring" data-key="w">W</span>
+            <span class="key left-middle" data-key="e">E</span>
+            <span class="key left-index" data-key="r">R</span>
+            <span class="key left-index" data-key="t">T</span>
+            <span class="key right-index" data-key="y">Y</span>
+            <span class="key right-index" data-key="u">U</span>
+            <span class="key right-middle" data-key="i">I</span>
+            <span class="key right-ring" data-key="o">O</span>
+            <span class="key right-pinky" data-key="p">P</span>
+            <span class="key right-pinky" data-key="[">[</span>
+            <span class="key right-pinky" data-key="]">]</span>
+            <span class="key right-pinky" data-key="&#92;">&#92;</span>
+          </div>
+          <div class="keyboard-row">
+            <span class="key home-key left-pinky" data-key="a">A</span>
+            <span class="key home-key left-ring" data-key="s">S</span>
+            <span class="key home-key left-middle" data-key="d">D</span>
+            <span class="key home-key left-index" data-key="f">F</span>
+            <span class="key left-index" data-key="g">G</span>
+            <span class="key right-index" data-key="h">H</span>
+            <span class="key home-key right-index" data-key="j">J</span>
+            <span class="key home-key right-middle" data-key="k">K</span>
+            <span class="key home-key right-ring" data-key="l">L</span>
+            <span class="key home-key right-pinky" data-key=";">;</span>
+            <span class="key right-pinky" data-key="'">'</span>
+            <span class="key key-wide right-pinky">Enter</span>
+          </div>
+          <div class="keyboard-row">
+            <span class="key left-pinky" data-key="z">Z</span>
+            <span class="key left-ring" data-key="x">X</span>
+            <span class="key left-middle" data-key="c">C</span>
+            <span class="key left-index" data-key="v">V</span>
+            <span class="key left-index" data-key="b">B</span>
+            <span class="key right-index" data-key="n">N</span>
+            <span class="key right-index" data-key="m">M</span>
+            <span class="key right-middle" data-key=",">,</span>
+            <span class="key right-ring" data-key=".">.</span>
+            <span class="key right-pinky" data-key="/">/</span>
+          </div>
+          <div class="keyboard-row">
+            <span class="key space-key thumb" data-key=" "></span>
+          </div>
+          <div class="finger-legend" aria-label="Finger color legend">
+            <span class="left-pinky">Left pinky</span>
+            <span class="left-ring">Left ring</span>
+            <span class="left-middle">Left middle</span>
+            <span class="left-index">Left index</span>
+            <span class="thumb">Thumbs</span>
+            <span class="right-index">Right index</span>
+            <span class="right-middle">Right middle</span>
+            <span class="right-ring">Right ring</span>
+            <span class="right-pinky">Right pinky</span>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -505,6 +688,7 @@
       const historyBody = app.querySelector("#historyBody");
       const historyCount = app.querySelector("#historyCount");
       const emptyHistory = app.querySelector("#emptyHistory");
+      const keyboardKeys = Array.from(app.querySelectorAll(".key[data-key]"));
 
       let records = [];
       let session = null;
@@ -638,6 +822,16 @@
           html += `<span class="${className}">${escapeChar(expected)}</span>`;
         }
         targetBox.innerHTML = html;
+        highlightNextKey();
+      }
+
+      function highlightNextKey() {
+        keyboardKeys.forEach((key) => key.classList.remove("active-key"));
+        const nextKey = targetText[typingInput.value.length];
+        if (!nextKey) return;
+        const normalizedKey = nextKey === " " ? " " : nextKey.toLowerCase();
+        const keyElement = keyboardKeys.find((key) => key.dataset.key === normalizedKey);
+        if (keyElement) keyElement.classList.add("active-key");
       }
 
       function updateMetrics() {
