@@ -1,0 +1,22 @@
+window.dailyTypingPracticeParagraphs = [
+  "keep your fingers close to the home row. reach for each letter with the finger that owns it, then return to the home key before moving again.",
+  "steady typing comes from small movements. relax your hands, keep your eyes on the text, and let each key press be clean and even.",
+  "accuracy matters more than speed at first. type the next word only after your fingers are ready, and let the rhythm build slowly.",
+  "the left hand covers a s d f and the right hand covers j k l semicolon. return to those keys after every reach.",
+  "use your thumbs for spaces and keep your wrists quiet. short daily practice makes the keyboard feel more familiar over time.",
+  "look at the finger map when a key feels uncertain. pause for a moment, find the right finger, and continue with control.",
+  "good practice is simple and repeatable. sit tall, breathe evenly, and type each paragraph without rushing the first pass.",
+  "mistakes are useful signals. notice which finger missed the key, reset to the home row, and keep typing at a steady pace.",
+  "move from the center of the keyboard and return to the center. each reach should feel small, direct, and easy to repeat.",
+  "let your eyes read ahead while your fingers finish the current word. smooth typing is a quiet pattern of looking, reaching, and resetting.",
+  "slow down when your hands feel lost. the fastest way to improve is to type cleanly enough that your fingers learn the route.",
+  "use the same finger for the same key every time. steady habits make the keyboard predictable and reduce correction work later.",
+  "keep both index fingers ready for the middle columns. they handle many common letters, so calm movement matters more than force.",
+  "spaces are part of the rhythm. press the space bar with a thumb, then let the next finger move without lifting the whole hand.",
+  "practice in short sessions and stop when the timer ends. a clear limit makes it easier to come back tomorrow and compare progress.",
+  "read the paragraph first, then type it without chasing speed. clean contact with each key will make speed appear naturally.",
+  "if a word feels awkward, keep your hands relaxed and finish it anyway. the next repetition is another chance to make it cleaner.",
+  "home row is the anchor. after each reach, bring your fingers back to a s d f and j k l semicolon before starting the next word.",
+  "type with light pressure and steady timing. hard key presses waste energy and make it harder to recover after an error.",
+  "watch the highlighted key when you are unsure. match the color to the finger zone, press once, and return to the home row."
+];

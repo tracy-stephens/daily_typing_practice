@@ -129,6 +129,12 @@
       border-color: #b8c6d8;
     }
 
+    .small-button {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 0.82rem;
+    }
+
     .danger-button {
       color: #7f1d1d;
       background: #fee2e2;
@@ -298,6 +304,19 @@
 
     .finger-legend span {
       background: transparent;
+    }
+
+    .paragraph-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .field-label {
+      color: #3b4658;
+      font-size: 0.84rem;
+      font-weight: 700;
     }
 
     .practice-setup {
@@ -616,10 +635,11 @@
       <section class="practice-panel panel" aria-label="Typing practice">
         <div class="practice-top">
           <div class="practice-setup">
-            <label>
-              Practice sentence
-              <textarea id="sentenceInput">Stay on the home row, move one finger at a time, and return each finger to its key.</textarea>
-            </label>
+            <div class="paragraph-header">
+              <label class="field-label" for="sentenceInput">Practice paragraph</label>
+              <button id="newParagraphBtn" class="secondary-button small-button" type="button">New paragraph</button>
+            </div>
+            <textarea id="sentenceInput"></textarea>
           </div>
 
           <div class="metrics" aria-label="Session stats">
@@ -667,6 +687,7 @@
     </section>
   </main>
 
+  <script src="paragraphs.js"></script>
   <script>
     (() => {
       const storageKey = "daily-typing-practice-v1";
@@ -676,6 +697,7 @@
       const sentenceInput = app.querySelector("#sentenceInput");
       const startBtn = app.querySelector("#startBtn");
       const endBtn = app.querySelector("#endBtn");
+      const newParagraphBtn = app.querySelector("#newParagraphBtn");
       const clearTodayBtn = app.querySelector("#clearTodayBtn");
       const targetBox = app.querySelector("#targetBox");
       const typingInput = app.querySelector("#typingInput");
@@ -694,6 +716,10 @@
       let session = null;
       let ticker = null;
       let targetText = "";
+      let currentParagraphIndex = 0;
+      let userEditedParagraph = false;
+      const paragraphIndexKey = "daily-typing-practice-last-paragraph-index-v1";
+      const practiceParagraphs = window.dailyTypingPracticeParagraphs;
       const isMac = navigator.platform.toLowerCase().includes("mac");
       const shortcutLabel = isMac ? "Command+Enter" : "Control+Enter";
       startBtn.title = `Start session (${shortcutLabel})`;
@@ -738,6 +764,49 @@
         localStorage.setItem(storageKey, JSON.stringify(nextRecords));
       }
 
+      function validatePracticeParagraphs() {
+        if (!Array.isArray(practiceParagraphs) || practiceParagraphs.length === 0) {
+          throw new Error("window.dailyTypingPracticeParagraphs must be a non-empty array.");
+        }
+        practiceParagraphs.forEach((paragraph, index) => {
+          if (typeof paragraph !== "string" || !paragraph.trim()) {
+            throw new Error(`Practice paragraph ${index} must be a non-empty string.`);
+          }
+        });
+      }
+
+      function readLastParagraphIndex() {
+        const raw = localStorage.getItem(paragraphIndexKey);
+        if (raw === null) return null;
+        const parsed = Number(raw);
+        if (!Number.isInteger(parsed) || parsed < 0) {
+          throw new Error(`${paragraphIndexKey} must contain a non-negative integer.`);
+        }
+        return parsed % practiceParagraphs.length;
+      }
+
+      function writeLastParagraphIndex(index) {
+        localStorage.setItem(paragraphIndexKey, String(index));
+      }
+
+      function randomParagraphIndex(excludedIndex) {
+        if (!window.crypto || typeof window.crypto.getRandomValues !== "function") {
+          throw new Error("crypto.getRandomValues is unavailable; random paragraph selection cannot run.");
+        }
+
+        const paragraphCount = practiceParagraphs.length;
+        const excludesParagraph = excludedIndex !== null && paragraphCount > 1;
+        const range = excludesParagraph ? paragraphCount - 1 : paragraphCount;
+        const values = new Uint32Array(1);
+        window.crypto.getRandomValues(values);
+
+        let index = values[0] % range;
+        if (excludesParagraph && index >= excludedIndex) {
+          index += 1;
+        }
+        return index;
+      }
+
       function loadHistory() {
         clearError();
         try {
@@ -759,12 +828,48 @@
         }
       }
 
-      function makeTarget(sentence) {
-        const cleanSentence = sentence.replace(/\s+/g, " ").trim();
-        if (!cleanSentence) {
-          throw new Error("Practice sentence cannot be empty.");
+      function setPracticeParagraph(index, shouldPersist) {
+        currentParagraphIndex = index % practiceParagraphs.length;
+        userEditedParagraph = false;
+        sentenceInput.value = practiceParagraphs[currentParagraphIndex];
+        targetText = makeTarget(sentenceInput.value);
+        renderTarget();
+
+        if (!shouldPersist) return true;
+        try {
+          writeLastParagraphIndex(currentParagraphIndex);
+          return true;
+        } catch (error) {
+          showError("Could not save selected practice paragraph to localStorage.", error);
+          return false;
         }
-        return Array(80).fill(cleanSentence).join(" ");
+      }
+
+      function loadPracticeParagraph() {
+        try {
+          validatePracticeParagraphs();
+          setPracticeParagraph(randomParagraphIndex(readLastParagraphIndex()), true);
+        } catch (error) {
+          showError("Could not load random practice paragraph.", error);
+          setPracticeParagraph(0, false);
+        }
+      }
+
+      function advancePracticeParagraph(fromIndex) {
+        try {
+          return setPracticeParagraph(randomParagraphIndex(fromIndex), true);
+        } catch (error) {
+          showError("Could not select a new random practice paragraph.", error);
+          return false;
+        }
+      }
+
+      function makeTarget(paragraph) {
+        const cleanParagraph = paragraph.replace(/\s+/g, " ").trim();
+        if (!cleanParagraph) {
+          throw new Error("Practice paragraph cannot be empty.");
+        }
+        return Array(80).fill(cleanParagraph).join(" ");
       }
 
       function escapeChar(character) {
@@ -865,6 +970,7 @@
       function setRunning(isRunning) {
         durationInput.disabled = isRunning;
         sentenceInput.disabled = isRunning;
+        newParagraphBtn.disabled = isRunning;
         startBtn.disabled = isRunning;
         endBtn.disabled = !isRunning;
         typingInput.disabled = !isRunning;
@@ -889,7 +995,8 @@
           startedAt: Date.now(),
           durationSeconds: durationMinutes * 60,
           durationMinutes,
-          sentence: sentenceInput.value.replace(/\s+/g, " ").trim()
+          paragraph: sentenceInput.value.replace(/\s+/g, " ").trim(),
+          paragraphIndex: userEditedParagraph ? null : currentParagraphIndex
         };
         typingInput.value = "";
         setRunning(true);
@@ -914,7 +1021,8 @@
           reason,
           durationSeconds: Math.round(elapsedSeconds),
           targetDurationSeconds: Math.round(session.durationSeconds),
-          sentence: session.sentence,
+          paragraph: session.paragraph,
+          paragraphIndex: session.paragraphIndex,
           typedChars: stats.typedChars,
           correctChars: stats.correctChars,
           errors: stats.errors,
@@ -925,14 +1033,17 @@
 
         records.push(finishedRecord);
         const saved = persistHistory();
+        const paragraphIndexForNextSession = session.paragraphIndex === null ? currentParagraphIndex : session.paragraphIndex;
         session = null;
         setRunning(false);
+        typingInput.value = "";
+        const nextParagraphSaved = advancePracticeParagraph(paragraphIndexForNextSession);
         showFinalMetrics(stats, Math.max(0, finishedRecord.targetDurationSeconds - finishedRecord.durationSeconds));
         renderHistory();
-        if (saved) {
+        if (saved && nextParagraphSaved) {
           statusText.textContent = reason === "complete" ? "Session saved" : "Ended early and saved";
         } else {
-          statusText.textContent = "Session ended, but history was not saved";
+          statusText.textContent = "Session ended, but not everything was saved";
         }
       }
 
@@ -1000,6 +1111,12 @@
 
       startBtn.addEventListener("click", startSession);
       endBtn.addEventListener("click", () => finishSession("ended"));
+      newParagraphBtn.addEventListener("click", () => {
+        clearError();
+        const saved = advancePracticeParagraph(currentParagraphIndex);
+        typingInput.value = "";
+        statusText.textContent = saved ? "Paragraph changed" : "Paragraph changed, but the next index was not saved";
+      });
       clearTodayBtn.addEventListener("click", clearHistory);
       document.addEventListener("keydown", (event) => {
         const usesPrimaryModifier = isMac ? event.metaKey : event.ctrlKey;
@@ -1016,10 +1133,24 @@
       typingInput.addEventListener("input", () => {
         if (!session) return;
         if (typingInput.value.length > targetText.length - visibleAhead - 40) {
-          targetText += ` ${makeTarget(session.sentence)}`;
+          targetText += ` ${makeTarget(session.paragraph)}`;
         }
         renderTarget();
         updateMetrics();
+      });
+
+      sentenceInput.addEventListener("input", () => {
+        if (session) return;
+        userEditedParagraph = true;
+        try {
+          targetText = makeTarget(sentenceInput.value);
+          typingInput.value = "";
+          renderTarget();
+        } catch (error) {
+          targetText = "";
+          targetBox.innerHTML = "";
+          highlightNextKey();
+        }
       });
 
       durationInput.addEventListener("input", () => {
@@ -1029,9 +1160,8 @@
       });
 
       try {
-        targetText = makeTarget(sentenceInput.value);
-        renderTarget();
         loadHistory();
+        loadPracticeParagraph();
       } catch (error) {
         showError("Could not initialize typing practice.", error);
       }
