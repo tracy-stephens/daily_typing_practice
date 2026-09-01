@@ -29,5 +29,5 @@ To turn on the permanent URL:
 1. Open repo Settings.
 2. Go to Pages.
 3. Set Source to `Deploy from a branch`.
-4. Select branch `main` and folder `/root`.
+4. Select branch `main` and folder `/ (root)`.
 5. Save.
