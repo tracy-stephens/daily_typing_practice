@@ -691,6 +691,7 @@
   <script>
     (() => {
       const storageKey = "daily-typing-practice-v1";
+      const activeSessionKey = "daily-typing-practice-active-session-v1";
       const visibleAhead = 420;
       const app = document.getElementById("typing-practice-app");
       const durationInput = app.querySelector("#durationInput");
@@ -764,6 +765,69 @@
         localStorage.setItem(storageKey, JSON.stringify(nextRecords));
       }
 
+      function readActiveSessionDraft() {
+        const raw = localStorage.getItem(activeSessionKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") {
+          throw new Error(`${activeSessionKey} must contain a JSON object.`);
+        }
+        return parsed;
+      }
+
+      function writeActiveSessionDraft() {
+        if (!session) return true;
+        try {
+          localStorage.setItem(activeSessionKey, JSON.stringify({
+            startedAt: session.startedAt,
+            updatedAt: Date.now(),
+            durationSeconds: session.durationSeconds,
+            durationMinutes: session.durationMinutes,
+            paragraph: session.paragraph,
+            paragraphIndex: session.paragraphIndex,
+            typedValue: typingInput.value
+          }));
+          return true;
+        } catch (error) {
+          showError("Could not save active session draft to localStorage.", error);
+          return false;
+        }
+      }
+
+      function clearActiveSessionDraft() {
+        try {
+          localStorage.removeItem(activeSessionKey);
+          return true;
+        } catch (error) {
+          showError("Could not clear active session draft from localStorage.", error);
+          return false;
+        }
+      }
+
+      function validateActiveSessionDraft(draft) {
+        if (!Number.isFinite(draft.startedAt)) {
+          throw new Error("Active session draft is missing a numeric startedAt.");
+        }
+        if (!Number.isFinite(draft.updatedAt)) {
+          throw new Error("Active session draft is missing a numeric updatedAt.");
+        }
+        if (!Number.isFinite(draft.durationSeconds) || draft.durationSeconds <= 0) {
+          throw new Error("Active session draft is missing a positive durationSeconds.");
+        }
+        if (!Number.isFinite(draft.durationMinutes) || draft.durationMinutes <= 0) {
+          throw new Error("Active session draft is missing a positive durationMinutes.");
+        }
+        if (typeof draft.paragraph !== "string" || !draft.paragraph.trim()) {
+          throw new Error("Active session draft is missing a non-empty paragraph.");
+        }
+        if (draft.paragraphIndex !== null && !Number.isInteger(draft.paragraphIndex)) {
+          throw new Error("Active session draft paragraphIndex must be null or an integer.");
+        }
+        if (typeof draft.typedValue !== "string") {
+          throw new Error("Active session draft is missing typedValue text.");
+        }
+      }
+
       function validatePracticeParagraphs() {
         if (!Array.isArray(practiceParagraphs) || practiceParagraphs.length === 0) {
           throw new Error("window.dailyTypingPracticeParagraphs must be a non-empty array.");
@@ -816,6 +880,27 @@
           showError("Could not load typing history from localStorage.", error);
         }
         renderHistory();
+      }
+
+      function recoverActiveSessionDraft() {
+        let draft = null;
+        try {
+          draft = readActiveSessionDraft();
+          if (!draft) return;
+          validateActiveSessionDraft(draft);
+        } catch (error) {
+          showError("Could not recover active session draft from localStorage.", error);
+          return;
+        }
+
+        const { record: recoveredRecord } = buildFinishedRecord(draft, draft.typedValue, "recovered", draft.updatedAt);
+        records.push(recoveredRecord);
+        const saved = persistHistory();
+        const cleared = saved ? clearActiveSessionDraft() : false;
+        renderHistory();
+        statusText.textContent = saved && cleared
+          ? "Recovered and saved your interrupted session"
+          : "Recovered an interrupted session, but not everything was saved";
       }
 
       function persistHistory() {
@@ -881,11 +966,11 @@
           .replace(/>/g, "&gt;");
       }
 
-      function measure(inputValue, elapsedSeconds) {
+      function measure(inputValue, elapsedSeconds, comparisonText = targetText) {
         let correctChars = 0;
         let errors = 0;
         for (let index = 0; index < inputValue.length; index += 1) {
-          if (inputValue[index] === targetText[index]) {
+          if (inputValue[index] === comparisonText[index]) {
             correctChars += 1;
           } else {
             errors += 1;
@@ -905,6 +990,31 @@
           grossWpm,
           netWpm,
           accuracy
+        };
+      }
+
+      function buildFinishedRecord(sourceSession, typedValue, reason, endedAt = Date.now()) {
+        const elapsedSeconds = Math.min((endedAt - sourceSession.startedAt) / 1000, sourceSession.durationSeconds);
+        const comparisonText = makeTarget(sourceSession.paragraph);
+        const stats = measure(typedValue, elapsedSeconds, comparisonText);
+
+        return {
+          record: {
+            date: todayKey(new Date(endedAt)),
+            timestamp: new Date(endedAt).toISOString(),
+            reason,
+            durationSeconds: Math.round(elapsedSeconds),
+            targetDurationSeconds: Math.round(sourceSession.durationSeconds),
+            paragraph: sourceSession.paragraph,
+            paragraphIndex: sourceSession.paragraphIndex,
+            typedChars: stats.typedChars,
+            correctChars: stats.correctChars,
+            errors: stats.errors,
+            grossWpm: Number(stats.grossWpm.toFixed(2)),
+            netWpm: Number(stats.netWpm.toFixed(2)),
+            accuracy: Number((stats.accuracy * 100).toFixed(2))
+          },
+          stats
         };
       }
 
@@ -971,7 +1081,9 @@
         durationInput.disabled = isRunning;
         sentenceInput.disabled = isRunning;
         newParagraphBtn.disabled = isRunning;
-        startBtn.disabled = isRunning;
+        startBtn.disabled = false;
+        startBtn.textContent = isRunning ? "Save & End" : "Start";
+        startBtn.title = isRunning ? `Save and end session (${shortcutLabel})` : `Start session (${shortcutLabel})`;
         endBtn.disabled = !isRunning;
         typingInput.disabled = !isRunning;
       }
@@ -1003,6 +1115,7 @@
         statusText.textContent = "Session running";
         renderTarget();
         updateMetrics();
+        writeActiveSessionDraft();
         typingInput.focus();
         ticker = window.setInterval(updateMetrics, 250);
       }
@@ -1013,26 +1126,11 @@
         window.clearInterval(ticker);
         ticker = null;
 
-        const elapsedSeconds = Math.min((Date.now() - session.startedAt) / 1000, session.durationSeconds);
-        const stats = measure(typingInput.value, elapsedSeconds);
-        const finishedRecord = {
-          date: todayKey(),
-          timestamp: new Date().toISOString(),
-          reason,
-          durationSeconds: Math.round(elapsedSeconds),
-          targetDurationSeconds: Math.round(session.durationSeconds),
-          paragraph: session.paragraph,
-          paragraphIndex: session.paragraphIndex,
-          typedChars: stats.typedChars,
-          correctChars: stats.correctChars,
-          errors: stats.errors,
-          grossWpm: Number(stats.grossWpm.toFixed(2)),
-          netWpm: Number(stats.netWpm.toFixed(2)),
-          accuracy: Number((stats.accuracy * 100).toFixed(2))
-        };
+        const { record: finishedRecord, stats } = buildFinishedRecord(session, typingInput.value, reason);
 
         records.push(finishedRecord);
         const saved = persistHistory();
+        const activeDraftCleared = saved ? clearActiveSessionDraft() : false;
         const paragraphIndexForNextSession = session.paragraphIndex === null ? currentParagraphIndex : session.paragraphIndex;
         session = null;
         setRunning(false);
@@ -1040,7 +1138,7 @@
         const nextParagraphSaved = advancePracticeParagraph(paragraphIndexForNextSession);
         showFinalMetrics(stats, Math.max(0, finishedRecord.targetDurationSeconds - finishedRecord.durationSeconds));
         renderHistory();
-        if (saved && nextParagraphSaved) {
+        if (saved && activeDraftCleared && nextParagraphSaved) {
           statusText.textContent = reason === "complete" ? "Session saved" : "Ended early and saved";
         } else {
           statusText.textContent = "Session ended, but not everything was saved";
@@ -1109,7 +1207,13 @@
         }
       }
 
-      startBtn.addEventListener("click", startSession);
+      startBtn.addEventListener("click", () => {
+        if (session) {
+          finishSession("ended");
+        } else {
+          startSession();
+        }
+      });
       endBtn.addEventListener("click", () => finishSession("ended"));
       newParagraphBtn.addEventListener("click", () => {
         clearError();
@@ -1137,6 +1241,7 @@
         }
         renderTarget();
         updateMetrics();
+        writeActiveSessionDraft();
       });
 
       sentenceInput.addEventListener("input", () => {
@@ -1159,8 +1264,13 @@
         timeMetric.textContent = Number.isFinite(durationMinutes) && durationMinutes > 0 ? formatTime(durationMinutes * 60) : "--";
       });
 
+      window.addEventListener("pagehide", () => {
+        if (session) writeActiveSessionDraft();
+      });
+
       try {
         loadHistory();
+        recoverActiveSessionDraft();
         loadPracticeParagraph();
       } catch (error) {
         showError("Could not initialize typing practice.", error);
