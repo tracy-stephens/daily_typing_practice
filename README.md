@@ -4,7 +4,9 @@ Short, time-boxed touch-typing practice you can run every day in a browser.
 
 ## Use
 
-Open `index.html` in Chrome.
+Open `index.html` in Chrome, or use the GitHub Pages URL after Pages is enabled:
+
+`https://tracy-stephens.github.io/daily_typing_practice/`
 
 - Default session length is 2 minutes.
 - Change the minutes before pressing Start.
@@ -19,3 +21,13 @@ Open `index.html` in Chrome.
 Each ended session is saved in browser `localStorage`. The history table shows daily sessions, best WPM, average WPM, average accuracy, total minutes, and errors.
 
 Practice text lives in `paragraphs.js`.
+
+## GitHub Pages
+
+To turn on the permanent URL:
+
+1. Open repo Settings.
+2. Go to Pages.
+3. Set Source to `Deploy from a branch`.
+4. Select branch `main` and folder `/root`.
+5. Save.
