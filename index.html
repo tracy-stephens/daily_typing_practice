@@ -198,6 +198,22 @@
       gap: var(--key-gap);
     }
 
+    .keyboard-row.row-number {
+      transform: translateX(calc(var(--key-w) * -0.12));
+    }
+
+    .keyboard-row.row-letters {
+      transform: translateX(calc(var(--key-w) * 0.12));
+    }
+
+    .keyboard-row.row-home {
+      transform: translateX(calc(var(--key-w) * 0.28));
+    }
+
+    .keyboard-row.row-bottom {
+      transform: translateX(calc(var(--key-w) * 0.05));
+    }
+
     .key {
       display: inline-grid;
       place-items: center;
@@ -217,8 +233,13 @@
       font-size: clamp(0.62rem, 1vw, 0.86rem);
     }
 
+    .modifier-key {
+      width: calc(var(--key-w) * 1.35);
+      font-size: clamp(0.54rem, 0.85vw, 0.72rem);
+    }
+
     .space-key {
-      width: calc(var(--key-w) * 4.4);
+      width: calc(var(--key-w) * 5.6);
       height: clamp(22px, 2.2vw, 30px);
     }
 
@@ -557,7 +578,7 @@
     <aside class="diagram-panel panel" aria-label="Finger placement diagram">
       <div class="diagram-frame">
         <div class="keyboard-board" role="img" aria-label="Keyboard diagram showing finger zones and home-row keys">
-          <div class="keyboard-row">
+          <div class="keyboard-row row-number">
             <span class="key left-pinky" data-key="1">1</span>
             <span class="key left-ring" data-key="2">2</span>
             <span class="key left-middle" data-key="3">3</span>
@@ -572,7 +593,7 @@
             <span class="key right-pinky" data-key="=">=</span>
             <span class="key key-wide right-pinky">Back</span>
           </div>
-          <div class="keyboard-row">
+          <div class="keyboard-row row-letters">
             <span class="key left-pinky" data-key="q">Q</span>
             <span class="key left-ring" data-key="w">W</span>
             <span class="key left-middle" data-key="e">E</span>
@@ -587,7 +608,7 @@
             <span class="key right-pinky" data-key="]">]</span>
             <span class="key right-pinky" data-key="&#92;">&#92;</span>
           </div>
-          <div class="keyboard-row">
+          <div class="keyboard-row row-home">
             <span class="key home-key left-pinky" data-key="a">A</span>
             <span class="key home-key left-ring" data-key="s">S</span>
             <span class="key home-key left-middle" data-key="d">D</span>
@@ -601,7 +622,7 @@
             <span class="key right-pinky" data-key="'">'</span>
             <span class="key key-wide right-pinky">Enter</span>
           </div>
-          <div class="keyboard-row">
+          <div class="keyboard-row row-letters">
             <span class="key left-pinky" data-key="z">Z</span>
             <span class="key left-ring" data-key="x">X</span>
             <span class="key left-middle" data-key="c">C</span>
@@ -613,8 +634,14 @@
             <span class="key right-ring" data-key=".">.</span>
             <span class="key right-pinky" data-key="/">/</span>
           </div>
-          <div class="keyboard-row">
+          <div class="keyboard-row row-bottom">
+            <span class="key modifier-key left-pinky">Ctrl</span>
+            <span class="key modifier-key left-ring">Alt</span>
+            <span class="key modifier-key left-middle">Meta</span>
             <span class="key space-key thumb" data-key=" "></span>
+            <span class="key modifier-key right-middle">Alt</span>
+            <span class="key modifier-key right-ring">Fn</span>
+            <span class="key modifier-key right-pinky">Right</span>
           </div>
           <div class="finger-legend" aria-label="Finger color legend">
             <span class="left-pinky">Left pinky</span>
