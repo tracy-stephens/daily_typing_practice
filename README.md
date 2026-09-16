@@ -19,7 +19,7 @@ Open `index.html` in Chrome, or use the GitHub Pages URL after Pages is enabled:
 
 ## Tracking
 
-Each ended session is saved in browser `localStorage`. The history table shows daily sessions, best WPM, average WPM, average accuracy, total minutes, and errors.
+Each ended session is saved in browser `localStorage`. The history table shows one row per session with its completion time, duration, WPM, accuracy, and errors.
 
 If the page closes or reloads during a session, the active session is recovered and saved the next time the app opens.
 

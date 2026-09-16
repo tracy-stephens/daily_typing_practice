@@ -692,7 +692,7 @@
         <div id="errorBox" class="error" role="alert"></div>
       </section>
 
-      <section class="history-panel panel" aria-label="Day to day performance">
+      <section class="history-panel panel" aria-label="Session performance">
         <div class="history-header">
           <h2>Performance History</h2>
           <p class="subtle" id="historyCount">No sessions yet</p>
@@ -701,18 +701,16 @@
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Sessions</th>
-                <th>Best WPM</th>
-                <th>Avg WPM</th>
-                <th>Avg Accuracy</th>
-                <th>Total Minutes</th>
-                <th>Total Errors</th>
+                <th>Completed</th>
+                <th>Duration</th>
+                <th>WPM</th>
+                <th>Accuracy</th>
+                <th>Errors</th>
               </tr>
             </thead>
             <tbody id="historyBody"></tbody>
           </table>
-          <div id="emptyHistory" class="empty-state">Complete a session to start tracking day-to-day progress.</div>
+          <div id="emptyHistory" class="empty-state">Complete a session to start tracking your performance.</div>
         </div>
       </section>
     </section>
@@ -1176,50 +1174,29 @@
         }
       }
 
-      function groupByDay(rows) {
-        const byDate = new Map();
-        rows.forEach((row) => {
-          if (!byDate.has(row.date)) byDate.set(row.date, []);
-          byDate.get(row.date).push(row);
-        });
-
-        return Array.from(byDate.entries())
-          .sort((a, b) => b[0].localeCompare(a[0]))
-          .map(([date, dayRows]) => {
-            const sessions = dayRows.length;
-            const totalMinutes = dayRows.reduce((sum, row) => sum + row.durationSeconds / 60, 0);
-            const totalErrors = dayRows.reduce((sum, row) => sum + row.errors, 0);
-            const bestWpm = Math.max(...dayRows.map((row) => row.netWpm));
-            const avgWpm = dayRows.reduce((sum, row) => sum + row.netWpm, 0) / sessions;
-            const avgAccuracy = dayRows.reduce((sum, row) => sum + row.accuracy, 0) / sessions;
-            return {
-              date,
-              sessions,
-              totalMinutes,
-              totalErrors,
-              bestWpm,
-              avgWpm,
-              avgAccuracy
-            };
-          });
-      }
-
       function renderHistory() {
-        const days = groupByDay(records);
+        const sessions = [...records].sort((a, b) => {
+          const leftTimestamp = Date.parse(a.timestamp || "");
+          const rightTimestamp = Date.parse(b.timestamp || "");
+          const left = Number.isFinite(leftTimestamp) ? leftTimestamp : 0;
+          const right = Number.isFinite(rightTimestamp) ? rightTimestamp : 0;
+          return right - left;
+        });
         historyBody.innerHTML = "";
-        emptyHistory.style.display = days.length ? "none" : "block";
+        emptyHistory.style.display = sessions.length ? "none" : "block";
         historyCount.textContent = records.length === 1 ? "1 session saved" : `${records.length} sessions saved`;
 
-        days.forEach((day) => {
+        sessions.forEach((sessionRecord) => {
           const row = document.createElement("tr");
+          const completed = sessionRecord.timestamp
+            ? new Date(sessionRecord.timestamp).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })
+            : sessionRecord.date;
           row.innerHTML = `
-            <td>${day.date}</td>
-            <td>${day.sessions}</td>
-            <td>${day.bestWpm.toFixed(1)}</td>
-            <td>${day.avgWpm.toFixed(1)}</td>
-            <td>${day.avgAccuracy.toFixed(1)}%</td>
-            <td>${day.totalMinutes.toFixed(1)}</td>
-            <td>${day.totalErrors}</td>
+            <td>${completed}</td>
+            <td>${formatTime(sessionRecord.durationSeconds)}</td>
+            <td>${sessionRecord.netWpm.toFixed(1)}</td>
+            <td>${sessionRecord.accuracy.toFixed(1)}%</td>
+            <td>${sessionRecord.errors}</td>
           `;
           historyBody.appendChild(row);
         });
